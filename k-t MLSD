@@ -1,0 +1,52 @@
+function [M] = ktMLSD(atb,mask,opts)
+%% Multi-dimensional low rank plus sparse decomposition for reconstruction 
+%% of under-sampled dynamic MRI
+
+
+epoch = opts.epoch;
+alpha = opts.alpha;
+lambda_L = opts.lambda_L;
+lambda_S = opts.lambda_S;
+T = opts.T;
+tol = opts.tol;
+
+M = ifft2c(atb);
+Lpre = M;
+S = zeros(size(M));
+iter = 0;
+dim = size(atb);
+
+while(1)
+	iter=iter+1;
+    M0=M;
+    X_temp = M-S;
+    for i = 1:ndims(M)
+        X_i = Unfold(X_temp, dim, i);
+        [u,s,v] = svd(X_i,'econ');
+        s = diag(s);
+        r = length(find(s>alpha(i)*lambda_L));
+        if r>=1
+            X_i = u(:,1:r)*(u(:,1:r))'*X_i;
+            X_temp = Fold(X_i,dim,i);
+        else
+            X_temp = zeros(size(X_temp));
+           %s = s(1:r)-alpha(i)*lam1/rho1;
+           %M{i} = Fold( u(:,1:r)*diag(s)*v(:,1:r)',dim,i);
+        end
+        %Lsum = Lsum + alpha(i) * M{i};   
+    end
+    L = X_temp;
+    S = T'*(SoftThresh(T*(M-Lpre),lambda_S));
+    
+    resk= mask.*fft2c(L+S)-atb;
+	M= L+S - ifft2c(resk);
+    Lpre = L;
+	if (iter > epoch) || (norm(M(:)-M0(:))<tol*norm(M0(:))), break;end
+end
+
+function y=SoftThresh(x,p)
+y=(abs(x)-p).*x./abs(x).*(abs(x)>p);
+y(isnan(y))=0;
+end 
+
+end
