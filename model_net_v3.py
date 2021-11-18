@@ -392,14 +392,14 @@ class ManifoldCell(layers.Layer):
             self.nb, nc, self.nt, self.nx, self.ny = input_shape
         
         x_k = self.conv_1(x_rec)
-        #grad_sparse = self.conv_transD(self.conv_D(x_k))
-        #grad_sparse = tf.stack([tf.math.real(grad_sparse), tf.math.imag(grad_sparse)], axis=-1)
-        #grad_sparse = tf.multiply(self.lambda_sparse, grad_sparse)
-        #grad_sparse = tf.complex(grad_sparse[..., 0], grad_sparse[..., 1])
-        #grad_dc = ifft2c_mri((fft2c_mri(x_k) * self.mask - d) * self.mask) 
-        #g_k = grad_dc +  grad_sparse
+        grad_sparse = self.conv_transD(self.conv_D(x_k))
+        grad_sparse = tf.stack([tf.math.real(grad_sparse), tf.math.imag(grad_sparse)], axis=-1)
+        grad_sparse = tf.multiply(self.lambda_sparse, grad_sparse)
+        grad_sparse = tf.complex(grad_sparse[..., 0], grad_sparse[..., 1])
+        grad_dc = ifft2c_mri((fft2c_mri(x_k) * self.mask - d) * self.mask) 
+        g_k = grad_dc +  grad_sparse
 
-        g_k = ifft2c_mri((fft2c_mri(x_k) * self.mask - d) * self.mask)
+        #g_k = ifft2c_mri((fft2c_mri(x_k) * self.mask - d) * self.mask)
         #g_k = self.E.mtimes(self.E.mtimes(x_k, inv=False, csm=csm) - d, inv=True, csm=csm)
         t_k = self.Tangent_Module(g_k, x_k)
         x_k = self.Retraction_Module(x_k, t_k)
