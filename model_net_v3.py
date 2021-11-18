@@ -375,7 +375,7 @@ class ManifoldCell(layers.Layer):
         self.learned_topk = learned_topk
         if self.learned_topk:
             self.eta = tf.Variable(tf.constant(0.01, dtype=tf.float32), trainable=True, name='eta')
-            #self.lambda_sparse = tf.Variable(tf.constant(0.01, dtype=tf.float32), trainable=True, name='lambda')
+            self.lambda_sparse = tf.Variable(tf.constant(0.01, dtype=tf.float32), trainable=True, name='lambda')
                 
 
         self.conv_1 = CNNLayer(n_f=16, n_out=2)
